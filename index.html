@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Il Mio Invito Digitale</title>
     <style>
         * {
@@ -15,30 +15,40 @@
             height: 100%;
             overflow: hidden;
             background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
+
+        /* Il contenitore mantiene SEMPRE la proporzione verticale 9:16, sia dritto che storto */
         .invitation-container {
             position: relative;
             width: 100%;
             height: 100%;
-            max-width: 500px;
-            margin: 0 auto;
+            aspect-ratio: 9 / 16;
+            max-height: 100vh;
+            max-width: calc(100vh * 9 / 16);
+            background-color: #000;
             overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
         }
+
         video {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
+            pointer-events: none; /* Impedisce al lettore video nativo del telefono di rubare il clic */
         }
 
-        /* Schermata iniziale pulita per sbloccare la musica obbligatoria su mobile */
+        /* Schermata iniziale per sbloccare l'audio obbligatorio */
         #audio-unlock-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 999;
             display: flex;
             flex-direction: column;
@@ -59,64 +69,59 @@
             font-weight: bold;
             border-radius: 30px;
             margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(255,255,255,0.3);
+            cursor: pointer;
         }
 
-        /* AREE CLICCABILI INVISIBILI SOPRA IL VIDEO */
+        /* AREE CLICCABILI INVISIBILI (Usano le percentuali fisse sul contenitore 9:16) */
         .clickable-area {
             position: absolute;
             left: 5%;
             width: 90%;
-            display: block;
-            z-index: 10;
-            background-color: transparent; /* Cambia in 'rgba(255,0,0,0.3)' se vuoi vederle in rosso per fare i test */
+            z-index: 99; /* Valore altissimo per stare sopra a tutto e intercettare il tocco */
+            text-decoration: none;
+            background-color: rgba(255, 0, 0, 0.3); /* <--- ORA È IN ROSSO PER VEDERLA. Cambia in 'transparent' alla fine */
         }
 
-        /* 1. Area sopra la scritta "UNISCITI A NOI!" */
+        /* 1. Area sopra "UNISCITI A NOI!" */
         #rsvp-trigger {
-            top: 90%;    /* Modifica questa percentuale se devi alzarla o abbassarla */
-            height: 8%;  /* Altezza dell'area del click */
+            top: 65%;    /* Modifica questa percentuale per alzare/abbassare il rettangolo */
+            height: 8%;  /* Spessore del rettangolo del click */
         }
 
-        /* 2. Area sopra la scritta del luogo "GIARDINO DELLE MERAVIGLIE..." */
+        /* 2. Area sopra la Mappa */
         #maps-trigger {
-            top: 78%;    /* Modifica questa percentuale se devi alzarla o abbassarla */
-            height: 10%; /* Altezza dell'area del click */
+            top: 78%;    /* Modifica questa percentuale per alzare/abbassare il rettangolo */
+            height: 10%; /* Spessore del rettangolo del click */
         }
     </style>
 </head>
 <body>
 
     <div class="invitation-container">
-        <!-- Schermata di avvio obbligatoria per attivare l'audio -->
+        <!-- Schermata di avvio -->
         <div id="audio-unlock-overlay" onclick="startInvitation()">
             <h2>✨ Ti hanno invitato a una festa! ✨</h2>
             <p style="margin-top: 10px; opacity: 0.8;">Tocca per aprire l'invito con la musica</p>
             <button class="unlock-btn">APRI INVITO 🎶</button>
         </div>
 
-        <!-- Il video parte mutato per superare i blocchi dei telefoni -->
         <video id="myVideo" loop playsinline muted>
             <source src="video.mp4" type="video/mp4">
             Il tuo browser non supporta i video HTML5.
         </video>
 
-        <!-- Area Invisibile 1: Inserisci il link del Google Form tra le virgolette di href -->
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdJJdV21h68GCbCCDC8KqS20Ar9o6fWLq4n0ucZwTMxRcD_DA/viewform?usp=header" class="clickable-area" id="rsvp-trigger"></a>
+        <!-- Area 1: SOSTITUISCI 'LINK_DEL_TUO_GOOGLE_FORM' CON IL TUO LINK REALE -->
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdJJdV21h68GCbCCDC8KqS20Ar9o6fWLq4n0ucZwTMxRcD_DA/viewform?usp=header" target="_blank" class="clickable-area" id="rsvp-trigger"></a>
 
-        <!-- Area Invisibile 2: Mappa del Giardino delle Meraviglie a Palermo -->
-        <a href="https://maps.app.goo.gl/yVVNXgNpjaUY199G9" class="clickable-area" id="maps-trigger"></a>
+        <!-- Area 2: Mappa del Giardino delle Meraviglie a Palermo -->
+        <a href="https://maps.app.goo.gl/yVVNXgNpjaUY199G9" target="_blank" class="clickable-area" id="maps-trigger"></a>
     </div>
 
     <script>
         function startInvitation() {
             var video = document.getElementById('myVideo');
             var overlay = document.getElementById('audio-unlock-overlay');
-            
-            // Nasconde la schermata di sblocco
             overlay.style.display = 'none';
-            
-            // Attiva l'audio e avvia il video
             video.muted = false;
             video.play().catch(function(error) {
                 console.log("Riproduzione fallita:", error);
