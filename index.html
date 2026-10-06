@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Il Mio Invito Digitale</title>
     <style>
+        /* Resetta i margini ed evita qualsiasi tipo di scorrimento */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -15,83 +16,75 @@
             height: 100%;
             overflow: hidden;
             background-color: #000;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: sans-serif;
         }
-        /* Contenitore principale del video a tutto schermo */
-        .video-container {
-            position: absolute;
-            top: 0;
-            left: 0;
+
+        /* Contenitore principale reattivo che si adatta allo schermo del telefono */
+        .invitation-container {
+            position: relative;
             width: 100%;
             height: 100%;
-            z-index: 1;
+            max-width: 500px; /* Larghezza ideale per simulare lo smartphone anche da PC */
+            margin: 0 auto;
+            overflow: hidden;
         }
+
+        /* Il video si adatta perfettamente ai bordi senza deformarsi */
         video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            pointer-events: none; /* Impedisce la comparsa delle barre native dello smartphone al tocco */
-        }
-        /* Overlay invisibile per i pulsanti cliccabili */
-        .interactive-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            padding-bottom: 8%; /* Distanza dal fondo per posizionare le aree cliccabili */
-        }
-        /* Stile delle aree cliccabili invisibili ma perfettamente posizionate */
-        .clickable-area {
+            object-fit: cover; /* Taglia leggermente i bordi se lo schermo è strano, ma riempie sempre la pagina */
             display: block;
-            width: 85%;
-            max-width: 400px;
-            height: 60px; /* Altezza dell'area di tocco per lo smartphone */
-            margin: 10px 0;
-            cursor: pointer;
+        }
+
+        /* AREE CLICCABILI INVISIBILI (Mappa e Form) */
+        .clickable-link {
+            position: absolute;
+            left: 5%;
+            width: 90%;
+            display: block;
             text-decoration: none;
-            -webkit-tap-highlight-color: rgba(0,0,0,0); /* Rimuove il flash brutto su iPhone al tocco */
-            /* Per testare il posizionamento puoi aggiungere un bordo temporaneo disattivando le righe sotto */
-            background: transparent;
-            border: none;
+            cursor: pointer;
+            z-index: 10;
+            /* Rendi i blocchi visibili in rosso durante i test cambiando 'transparent' con 'rgba(255,0,0,0.3)' */
+            background-color: transparent; 
+        }
+
+        /* 1. Area per l'RSVP ("UNISCITI A NOI!") */
+        #rsvp-trigger {
+            top: 65%;    /* Regola questa percentuale per alzare o abbassare il click */
+            height: 8%;  /* Regola questa percentuale per fare l'area più o meno alta */
+        }
+
+        /* 2. Area per la Mappa ("GIARDINO DELLE MERAVIGLIE...") */
+        #maps-trigger {
+            top: 78%;    /* Regola questa percentuale per posizionarla sopra la scritta del luogo */
+            height: 10%; /* Altezza dell'area del click per l'indirizzo */
         }
     </style>
 </head>
 <body>
 
-    <div class="video-container">
-        <!-- Istruzioni per l'Autoplay: il video DEVE essere in "muted" per partire da solo su smartphone, 
-             l'utente attiverà l'audio toccando lo schermo o tramite le impostazioni del telefono -->
-        <video id="bg-video" autoplay loop muted playsinline webkit-playsinline>
+    <div class="invitation-container">
+        <!-- Il video parte in automatico, mutato (obbligatorio su mobile), in loop e senza barre -->
+        <video autoplay muted loop playsinline id="myVideo">
             <source src="video.mp4" type="video/mp4">
             Il tuo browser non supporta i video HTML5.
         </video>
-    </div>
 
-    <!-- Questa è la griglia invisibile che cattura i click esattamente dove serve -->
-    <div class="interactive-overlay">
-        <!-- Area Cliccabile che corrisponde alla scritta "UNISCITI A NOI!" per il Google Form -->
-        <a href="https://drive.google.com/file/d/1U-oMwhFrR7L6TRi3aoo3ok8Sp1xlZFaq/view?usp=drive_link" target="_blank" class="clickable-area" title="Rsvp Google Form"></a>
-        
-        <!-- Area Cliccabile che corrisponde alla scritta "GIARDINO DELLE MERAVIGLIE..." per Google Maps -->
-        <a href="https://maps.google.com/?q=Giardino+delle+Meraviglie+Viale+del+Fante+66+Palermo" target="_blank" class="clickable-area" title="Mappa Google Maps"></a>
+        <!-- Area cliccabile 1: Incolla il link del tuo Google Form tra le virgolette di href -->
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdJJdV21h68GCbCCDC8KqS20Ar9o6fWLq4n0ucZwTMxRcD_DA/viewform?usp=header" class="clickable-link" id="rsvp-trigger"></a>
+
+        <!-- Area cliccabile 2: Mappa del Giardino delle Meraviglie a Palermo (Già configurata) -->
+        <a href="https://maps.app.goo.gl/yVVNXgNpjaUY199G9" class="clickable-link" id="maps-trigger"></a>
     </div>
 
     <script>
-        // Trucco JavaScript per forzare l'avvio dell'autoplay anche su browser mobili molto restrittivi
+        // Forza l'avvio del video nel caso in cui alcuni telefoni provino a bloccarlo
         document.addEventListener('DOMContentLoaded', function() {
-            var video = document.getElementById('bg-video');
+            var video = document.getElementById('myVideo');
             video.play().catch(function(error) {
-                console.log("Autoplay bloccato dal browser. Richiede interazione dell'utente.");
-                // Se bloccato, il primo tocco sullo schermo farà partire il video
-                document.body.addEventListener('click', function() {
-                    video.play();
-                }, { once: true });
+                console.log("Riproduzione automatica bloccata, in attesa di interazione.");
             });
         });
     </script>
